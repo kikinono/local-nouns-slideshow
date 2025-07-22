@@ -1,0 +1,20 @@
+[
+  {
+    "tokenId": 3001,
+    "image": "https://via.placeholder.com/400x400/fed702/000000?text=Osaka+Noun+%233001",
+    "head": "大阪城",
+    "body": "たこ焼きエプロン"
+  },
+  {
+    "tokenId": 3002,
+    "image": "https://via.placeholder.com/400x400/e74c3c/ffffff?text=Osaka+Noun+%233002",
+    "head": "通天閣",
+    "body": "お好み焼きシャツ"
+  },
+  {
+    "tokenId": 3003,
+    "image": "https://via.placeholder.com/400x400/10b981/ffffff?text=Osaka+Noun+%233003",
+    "head": "道頓堀看板",
+    "body": "串カツソース瓶"
+  }
+]

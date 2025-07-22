@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const TEMPLATE_PATH = path.join(__dirname, '../docs/prefecture/template.html');
+const TEMPLATE_PATH = path.join(__dirname, '../docs/prefecture/template_fixed.html');
 const PREFECTURE_DIR = path.join(__dirname, '../docs/prefecture');
 
 const PREFECTURES = [

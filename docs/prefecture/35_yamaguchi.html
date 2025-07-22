@@ -110,59 +110,80 @@
     </div>
 
     <script>
+        // 都道府県名マッピング
+        const PREFECTURES = {
+            '01': '北海道', '02': '青森県', '03': '岩手県', '04': '宮城県', '05': '秋田県',
+            '06': '山形県', '07': '福島県', '08': '茨城県', '09': '栃木県', '10': '群馬県',
+            '11': '埼玉県', '12': '千葉県', '13': '東京都', '14': '神奈川県', '15': '新潟県',
+            '16': '富山県', '17': '石川県', '18': '福井県', '19': '山梨県', '20': '長野県',
+            '21': '岐阜県', '22': '静岡県', '23': '愛知県', '24': '三重県', '25': '滋賀県',
+            '26': '京都府', '27': '大阪府', '28': '兵庫県', '29': '奈良県', '30': '和歌山県',
+            '31': '鳥取県', '32': '島根県', '33': '岡山県', '34': '広島県', '35': '山口県',
+            '36': '徳島県', '37': '香川県', '38': '愛媛県', '39': '高知県', '40': '福岡県',
+            '41': '佐賀県', '42': '長崎県', '43': '熊本県', '44': '大分県', '45': '宮崎県',
+            '46': '鹿児島県', '47': '沖縄県'
+        };
+
         class NFTSlideshow {
             constructor() {
                 this.prefectureData = null;
                 this.swiper = null;
                 this.thumbsSwiper = null;
+                this.prefCode = null;
+                this.prefName = null;
                 this.init();
             }
 
             async init() {
-                const urlPath = window.location.pathname;
-                const filename = urlPath.split('/').pop();
-                const prefCode = filename.split('_')[0];
-                const prefName = filename.split('_')[1].replace('.html', '');
-                
                 try {
-                    await this.loadData(prefCode, prefName);
+                    this.extractPrefectureInfo();
+                    await this.loadData();
+                    this.updateUI();
+                    this.renderSlides();
                     this.setupSwiper();
                     this.setupModal();
                 } catch (error) {
+                    console.error('Error initializing slideshow:', error);
                     this.showError();
                 }
             }
 
-            async loadData(prefCode, prefName) {
-                const response = await fetch(`../data/${prefCode}_${prefName}.json`);
-                if (!response.ok) throw new Error('Data not found');
+            extractPrefectureInfo() {
+                const urlPath = window.location.pathname;
+                const filename = urlPath.split('/').pop();
                 
-                this.prefectureData = await response.json();
-                
-                if (this.prefectureData.length === 0) {
-                    throw new Error('No NFTs found');
+                // ファイル名から都道府県コードと名前を抽出
+                const match = filename.match(/(\d{2})_(\w+)\.html/);
+                if (match) {
+                    this.prefCode = match[1];
+                    this.prefName = match[2];
+                } else {
+                    throw new Error('Invalid prefecture page URL');
                 }
-
-                this.updateUI(prefCode, prefName);
-                this.renderSlides();
             }
 
-            updateUI(prefCode, prefName) {
-                // タイトル更新
-                const prefectures = {
-                    '01': '北海道', '02': '青森県', '03': '岩手県', '04': '宮城県', '05': '秋田県',
-                    '06': '山形県', '07': '福島県', '08': '茨城県', '09': '栃木県', '10': '群馬県',
-                    '11': '埼玉県', '12': '千葉県', '13': '東京都', '14': '神奈川県', '15': '新潟県',
-                    '16': '富山県', '17': '石川県', '18': '福井県', '19': '山梨県', '20': '長野県',
-                    '21': '岐阜県', '22': '静岡県', '23': '愛知県', '24': '三重県', '25': '滋賀県',
-                    '26': '京都府', '27': '大阪府', '28': '兵庫県', '29': '奈良県', '30': '和歌山県',
-                    '31': '鳥取県', '32': '島根県', '33': '岡山県', '34': '広島県', '35': '山口県',
-                    '36': '徳島県', '37': '香川県', '38': '愛媛県', '39': '高知県', '40': '福岡県',
-                    '41': '佐賀県', '42': '長崎県', '43': '熊本県', '44': '大分県', '45': '宮崎県',
-                    '46': '鹿児島県', '47': '沖縄県'
-                };
+            async loadData() {
+                try {
+                    const response = await fetch(`../data/${this.prefCode}_${this.prefName}.json`);
+                    if (!response.ok) {
+                        throw new Error(`Data not found: ${response.status}`);
+                    }
+                    
+                    this.prefectureData = await response.json();
+                    
+                    if (!this.prefectureData || this.prefectureData.length === 0) {
+                        throw new Error('No NFTs found');
+                    }
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                    throw error;
+                }
+            }
 
-                const prefNameJa = prefectures[prefCode] || prefName;
+            updateUI() {
+                const prefNameJa = PREFECTURES[this.prefCode] || this.prefName;
+                
+                // タイトル更新
                 document.getElementById('page-title').textContent = `${prefNameJa} - ご当地Nouns ギャラリー`;
                 document.getElementById('prefecture-title').textContent = `${prefNameJa} ご当地Nouns`;
                 
@@ -179,18 +200,23 @@
                 const swiperWrapper = document.getElementById('swiper-wrapper');
                 const thumbsWrapper = document.getElementById('thumbs-wrapper');
                 
+                // 既存のコンテンツをクリア
+                swiperWrapper.innerHTML = '';
+                thumbsWrapper.innerHTML = '';
+                
                 this.prefectureData.forEach((nft, index) => {
                     // メインスライド
                     const slide = document.createElement('div');
                     slide.className = 'swiper-slide';
                     slide.innerHTML = `
                         <div class="bg-white rounded-lg shadow-lg overflow-hidden mx-2">
-                            <div class="aspect-square bg-gray-100 flex items-center justify-center cursor-pointer" onclick="slideshow.openModal(${index})">
+                            <div class="aspect-square bg-gray-100 flex items-center justify-center cursor-pointer">
                                 <img 
                                     src="${nft.image}" 
-                                    alt="${prefectures[prefCode] || ''} Noun #${nft.tokenId}"
+                                    alt="${PREFECTURES[this.prefCode] || ''} Noun #${nft.tokenId}"
                                     class="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
                                     loading="lazy"
+                                    onclick="slideshow.openModal(${index})"
                                 >
                             </div>
                             <div class="p-4 text-center">
@@ -313,6 +339,7 @@
         // グローバルインスタンス
         let slideshow;
         
+        // ページ読み込み完了後に初期化
         document.addEventListener('DOMContentLoaded', () => {
             slideshow = new NFTSlideshow();
         });
