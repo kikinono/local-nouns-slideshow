@@ -51,7 +51,7 @@
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
             <template x-for="prefecture in filteredPrefectures" :key="prefecture.code">
                 <a 
-                    :href="`./prefecture/${prefecture.code}_${prefecture.name}.html`"
+                    :href="`/local-nouns-slideshow/prefecture/${prefecture.code}_${prefecture.name}.html`"
                     class="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden"
                 >
                     <div class="p-6 text-center">
