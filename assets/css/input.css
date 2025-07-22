@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* カスタムコンポーネント */
+@layer components {
+  .prefecture-card {
+    @apply bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden;
+  }
+  
+  .prefecture-card:hover {
+    @apply transform scale-105;
+  }
+  
+  .btn-primary {
+    @apply bg-nouns-yellow hover:bg-yellow-500 text-gray-800 font-bold py-3 px-6 rounded-lg transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors;
+  }
+  
+  .nft-card {
+    @apply bg-white rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105;
+  }
+  
+  .loading-spinner {
+    @apply inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-nouns-yellow;
+  }
+}
+
+/* カスタムユーティリティ */
+@layer utilities {
+  .aspect-square {
+    aspect-ratio: 1 / 1;
+  }
+  
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .glass-effect {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.8);
+  }
+}
+
+/* Swiper カスタマイズ */
+.swiper-button-next,
+.swiper-button-prev {
+  color: #3b82f6 !important;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 40px !important;
+  height: 40px !important;
+  margin-top: -20px !important;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 16px !important;
+  font-weight: bold;
+}
+
+.swiper-pagination-bullet {
+  background: rgba(59, 130, 246, 0.5) !important;
+}
+
+.swiper-pagination-bullet-active {
+  background: #3b82f6 !important;
+}
+
+/* レスポンシブ調整 */
+@media (max-width: 768px) {
+  .swiper-button-next,
+  .swiper-button-prev {
+    display: none !important;
+  }
+}
+
+/* アニメーション */
+@keyframes pulse-nouns {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.02);
+  }
+}
+
+.animate-pulse-nouns {
+  animation: pulse-nouns 2s ease-in-out infinite;
+}
+
+/* フォント最適化 */
+body {
+  font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* スクロールバーカスタマイズ */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

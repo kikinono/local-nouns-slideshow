@@ -1,0 +1,25 @@
+{
+  "name": "local-nouns-slideshow",
+  "version": "1.0.0",
+  "description": "Local Nouns NFT slideshow gallery by prefecture",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "fetch-data": "node scripts/fetch_data.js",
+    "generate-pages": "node scripts/generate_pages.js",
+    "build": "npm run generate-pages",
+    "serve": "npx http-server docs"
+  },
+  "keywords": ["nft", "slideshow", "local-nouns", "japan"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "node-fetch": "^3.3.2",
+    "puppeteer": "^21.11.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "http-server": "^14.1.1"
+  }
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "tokenId": 1001,
+    "image": "https://via.placeholder.com/400x400/fed702/000000?text=Tokyo+Noun+%231001",
+    "head": "東京タワー",
+    "body": "江戸前寿司シャツ"
+  },
+  {
+    "tokenId": 1002,
+    "image": "https://via.placeholder.com/400x400/3b82f6/ffffff?text=Tokyo+Noun+%231002",
+    "head": "スカイツリー",
+    "body": "もんじゃ焼きエプロン"
+  },
+  {
+    "tokenId": 1003,
+    "image": "https://via.placeholder.com/400x400/10b981/ffffff?text=Tokyo+Noun+%231003",
+    "head": "渋谷交差点",
+    "body": "山手線ジャケット"
+  }
+]

@@ -1,0 +1,29 @@
+# 改行コードの自動変換設定
+* text=auto
+
+# JavaScriptファイル
+*.js text eol=lf
+*.mjs text eol=lf
+*.json text eol=lf
+
+# HTMLファイル
+*.html text eol=lf
+
+# CSSファイル
+*.css text eol=lf
+
+# Markdownファイル
+*.md text eol=lf
+
+# 設定ファイル
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# バイナリファイル
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">都道府県名 - ご当地Nouns ギャラリー</title>
+    <meta name="description" content="都道府県のLocal NounsをNFTイラストでスライドショー表示">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'nouns-bg': '#d5d7e1',
+                        'nouns-yellow': '#fed702',
+                        'nouns-red': '#e74c3c',
+                        'nouns-blue': '#3b82f6',
+                        'nouns-green': '#10b981'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-nouns-bg min-h-screen">
+    <!-- ヘッダー -->
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="../index.html" class="flex items-center text-gray-700 hover:text-nouns-blue transition-colors">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                ホームに戻る
+            </a>
+            <h1 id="prefecture-title" class="text-xl font-bold text-gray-800">都道府県名</h1>
+            <div class="w-24"></div> <!-- Spacer for centering -->
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- ローディング状態 -->
+        <div id="loading" class="text-center py-16">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-nouns-yellow"></div>
+            <p class="mt-4 text-gray-600">NFTを読み込んでいます...</p>
+        </div>
+
+        <!-- エラー状態 -->
+        <div id="error" class="hidden text-center py-16">
+            <div class="text-6xl mb-4">😞</div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">データが見つかりません</h2>
+            <p class="text-gray-600 mb-6">この都道府県のNFTデータを取得できませんでした。</p>
+            <a href="../index.html" class="inline-block bg-nouns-yellow hover:bg-yellow-500 text-gray-800 font-bold py-3 px-6 rounded-lg transition-colors">
+                ホームに戻る
+            </a>
+        </div>
+
+        <!-- NFTカウント -->
+        <div id="nft-count" class="hidden text-center mb-8">
+            <p class="text-lg text-gray-600">
+                <span id="count-number" class="font-bold text-nouns-blue">0</span> 個のNFTが見つかりました
+            </p>
+        </div>
+
+        <!-- スライドショー -->
+        <div id="slideshow-container" class="hidden">
+            <div class="swiper nft-swiper">
+                <div class="swiper-wrapper" id="swiper-wrapper">
+                    <!-- NFTスライドがJavaScriptで動的に追加されます -->
+                </div>
+                
+                <!-- ナビゲーション -->
+                <div class="swiper-button-next text-nouns-blue"></div>
+                <div class="swiper-button-prev text-nouns-blue"></div>
+                
+                <!-- ページネーション -->
+                <div class="swiper-pagination"></div>
+            </div>
+
+            <!-- サムネイル -->
+            <div class="swiper nft-thumbs mt-4">
+                <div class="swiper-wrapper" id="thumbs-wrapper">
+                    <!-- サムネイルがJavaScriptで動的に追加されます -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- モーダル -->
+    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-4xl max-h-full overflow-hidden">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 id="modal-title" class="text-lg font-bold"></h3>
+                <button id="modal-close" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-4">
+                <img id="modal-image" src="" alt="" class="w-full h-auto max-h-96 object-contain mx-auto">
+                <div id="modal-details" class="mt-4 text-center">
+                    <p id="modal-head" class="text-gray-700"></p>
+                    <p id="modal-body" class="text-gray-700"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class NFTSlideshow {
+            constructor() {
+                this.prefectureData = null;
+                this.swiper = null;
+                this.thumbsSwiper = null;
+                this.init();
+            }
+
+            async init() {
+                const urlPath = window.location.pathname;
+                const filename = urlPath.split('/').pop();
+                const prefCode = filename.split('_')[0];
+                const prefName = filename.split('_')[1].replace('.html', '');
+                
+                try {
+                    await this.loadData(prefCode, prefName);
+                    this.setupSwiper();
+                    this.setupModal();
+                } catch (error) {
+                    this.showError();
+                }
+            }
+
+            async loadData(prefCode, prefName) {
+                const response = await fetch(`../data/${prefCode}_${prefName}.json`);
+                if (!response.ok) throw new Error('Data not found');
+                
+                this.prefectureData = await response.json();
+                
+                if (this.prefectureData.length === 0) {
+                    throw new Error('No NFTs found');
+                }
+
+                this.updateUI(prefCode, prefName);
+                this.renderSlides();
+            }
+
+            updateUI(prefCode, prefName) {
+                // タイトル更新
+                const prefectures = {
+                    '01': '北海道', '02': '青森県', '03': '岩手県', '04': '宮城県', '05': '秋田県',
+                    '06': '山形県', '07': '福島県', '08': '茨城県', '09': '栃木県', '10': '群馬県',
+                    '11': '埼玉県', '12': '千葉県', '13': '東京都', '14': '神奈川県', '15': '新潟県',
+                    '16': '富山県', '17': '石川県', '18': '福井県', '19': '山梨県', '20': '長野県',
+                    '21': '岐阜県', '22': '静岡県', '23': '愛知県', '24': '三重県', '25': '滋賀県',
+                    '26': '京都府', '27': '大阪府', '28': '兵庫県', '29': '奈良県', '30': '和歌山県',
+                    '31': '鳥取県', '32': '島根県', '33': '岡山県', '34': '広島県', '35': '山口県',
+                    '36': '徳島県', '37': '香川県', '38': '愛媛県', '39': '高知県', '40': '福岡県',
+                    '41': '佐賀県', '42': '長崎県', '43': '熊本県', '44': '大分県', '45': '宮崎県',
+                    '46': '鹿児島県', '47': '沖縄県'
+                };
+
+                const prefNameJa = prefectures[prefCode] || prefName;
+                document.getElementById('page-title').textContent = `${prefNameJa} - ご当地Nouns ギャラリー`;
+                document.getElementById('prefecture-title').textContent = `${prefNameJa} ご当地Nouns`;
+                
+                // カウント表示
+                document.getElementById('count-number').textContent = this.prefectureData.length;
+                document.getElementById('nft-count').classList.remove('hidden');
+                
+                // ローディング非表示
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('slideshow-container').classList.remove('hidden');
+            }
+
+            renderSlides() {
+                const swiperWrapper = document.getElementById('swiper-wrapper');
+                const thumbsWrapper = document.getElementById('thumbs-wrapper');
+                
+                this.prefectureData.forEach((nft, index) => {
+                    // メインスライド
+                    const slide = document.createElement('div');
+                    slide.className = 'swiper-slide';
+                    slide.innerHTML = `
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden mx-2">
+                            <div class="aspect-square bg-gray-100 flex items-center justify-center cursor-pointer" onclick="slideshow.openModal(${index})">
+                                <img 
+                                    src="${nft.image}" 
+                                    alt="${prefectures[prefCode] || ''} Noun #${nft.tokenId}"
+                                    class="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
+                                    loading="lazy"
+                                >
+                            </div>
+                            <div class="p-4 text-center">
+                                <h3 class="font-bold text-lg text-gray-800">#${nft.tokenId}</h3>
+                                ${nft.head ? `<p class="text-sm text-gray-600 mt-1">Head: ${nft.head}</p>` : ''}
+                                ${nft.body ? `<p class="text-sm text-gray-600">Body: ${nft.body}</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    swiperWrapper.appendChild(slide);
+
+                    // サムネイル
+                    const thumb = document.createElement('div');
+                    thumb.className = 'swiper-slide cursor-pointer';
+                    thumb.innerHTML = `
+                        <img 
+                            src="${nft.image}" 
+                            alt="Thumbnail #${nft.tokenId}"
+                            class="w-full h-16 object-cover rounded opacity-60 hover:opacity-100 transition-opacity"
+                        >
+                    `;
+                    thumbsWrapper.appendChild(thumb);
+                });
+            }
+
+            setupSwiper() {
+                // サムネイルスワイパー
+                this.thumbsSwiper = new Swiper('.nft-thumbs', {
+                    spaceBetween: 10,
+                    slidesPerView: 'auto',
+                    freeMode: true,
+                    watchSlidesProgress: true,
+                });
+
+                // メインスワイパー
+                this.swiper = new Swiper('.nft-swiper', {
+                    spaceBetween: 30,
+                    slidesPerView: 1,
+                    centeredSlides: true,
+                    autoplay: {
+                        delay: 3000,
+                        disableOnInteraction: false,
+                    },
+                    thumbs: {
+                        swiper: this.thumbsSwiper,
+                    },
+                    navigation: {
+                        nextEl: '.swiper-button-next',
+                        prevEl: '.swiper-button-prev',
+                    },
+                    pagination: {
+                        el: '.swiper-pagination',
+                        clickable: true,
+                    },
+                    breakpoints: {
+                        768: {
+                            slidesPerView: 1.5,
+                        },
+                        1024: {
+                            slidesPerView: 2,
+                        }
+                    }
+                });
+            }
+
+            setupModal() {
+                const modal = document.getElementById('modal');
+                const closeBtn = document.getElementById('modal-close');
+                
+                closeBtn.addEventListener('click', () => this.closeModal());
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) this.closeModal();
+                });
+                
+                // ESCキーでモーダルを閉じる
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') this.closeModal();
+                });
+            }
+
+            openModal(index) {
+                const nft = this.prefectureData[index];
+                
+                document.getElementById('modal-title').textContent = `Local Noun #${nft.tokenId}`;
+                document.getElementById('modal-image').src = nft.image;
+                document.getElementById('modal-image').alt = `Local Noun #${nft.tokenId}`;
+                
+                const headElement = document.getElementById('modal-head');
+                const bodyElement = document.getElementById('modal-body');
+                
+                if (nft.head) {
+                    headElement.textContent = `Head: ${nft.head}`;
+                    headElement.style.display = 'block';
+                } else {
+                    headElement.style.display = 'none';
+                }
+                
+                if (nft.body) {
+                    bodyElement.textContent = `Body: ${nft.body}`;
+                    bodyElement.style.display = 'block';
+                } else {
+                    bodyElement.style.display = 'none';
+                }
+                
+                document.getElementById('modal').classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            closeModal() {
+                document.getElementById('modal').classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+
+            showError() {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('error').classList.remove('hidden');
+            }
+        }
+
+        // グローバルインスタンス
+        let slideshow;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            slideshow = new NFTSlideshow();
+        });
+    </script>
+
+    <style>
+        .swiper {
+            width: 100%;
+            height: auto;
+        }
+        
+        .swiper-slide {
+            text-align: center;
+            font-size: 18px;
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .nft-thumbs {
+            height: 80px;
+            box-sizing: border-box;
+            padding: 10px 0;
+        }
+        
+        .nft-thumbs .swiper-slide {
+            width: 25%;
+            height: 100%;
+            opacity: 0.4;
+        }
+        
+        .nft-thumbs .swiper-slide-thumb-active {
+            opacity: 1;
+        }
+        
+        .swiper-button-next,
+        .swiper-button-prev {
+            color: #3b82f6;
+        }
+        
+        .swiper-pagination-bullet-active {
+            background: #3b82f6;
+        }
+    </style>
+</body>
+</html>
